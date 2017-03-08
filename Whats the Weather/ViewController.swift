@@ -2,7 +2,7 @@
 //  ViewController.swift
 //  Whats the Weather
 //
-//  Created by kenneth moody on 12/6/15.
+//  Created by kenneth moody on 12/6/17.
 //  Copyright © 2015 iMoody Studios. All rights reserved.
 //
 
@@ -17,34 +17,35 @@ class ViewController: UIViewController {
     
     
     
-    @IBAction func findWeather(sender: AnyObject) {
+    @IBAction func findWeather(_ sender: AnyObject) {
         
-        let attemptedUrl = NSURL(string: "http://www.weather-forecast.com/locations/" + cityTextsField.text!.stringByReplacingOccurrencesOfString(" ", withString: "-") + "/forecasts/latest")
+        let attemptedUrl = URL(string: "http://www.weather-forecast.com/locations/" + cityTextsField.text!.replacingOccurrences(of: " ", with: "-") + "/forecasts/latest")
         
         var wasSuccessful = false
         
         if let url = attemptedUrl {
         
-        let task = NSURLSession.sharedSession().dataTaskWithURL(url) { (data, response, error) -> Void in
+        let task = URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) -> Void in
             
             if let urlContent = data {
                 
-                let webContent = NSString(data: urlContent, encoding: NSUTF8StringEncoding)
+                let webContent = NSString(data: urlContent, encoding: String.Encoding.utf8.rawValue)
                 
-                let websiteArray = webContent!.componentsSeparatedByString("3 Day Weather Forecast Summary:</b><span class=\"read-more-small\"><span class=\"read-more-content\"> <span class=\"phrase\">")
+                let websiteArray = webContent!.components(separatedBy: "3 Day Weather Forecast Summary:</b><span class=\"read-more-small\"><span class=\"read-more-content\"> <span class=\"phrase\">")
+
                 
                 if websiteArray.count > 1 {
                     
                     
-                    let weatherArray = websiteArray[1].componentsSeparatedByString("</span")
+                    let weatherArray = websiteArray[1].components(separatedBy: "</span")
                     
                     if weatherArray.count > 1 {
                         
                         wasSuccessful = true
                         
-                        let weatherSummary = weatherArray[0].stringByReplacingOccurrencesOfString("&deg;", withString: "º")
+                        let weatherSummary = weatherArray[0].replacingOccurrences(of: "&deg;", with: "º")
                         
-                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                        DispatchQueue.main.async(execute: { () -> Void in
                             self.resultLabel.text = weatherSummary
                         })
                     }
@@ -54,11 +55,9 @@ class ViewController: UIViewController {
             
                 if wasSuccessful == false {
                     
-                    self.resultLabel.text = "Couldn't find the weather for the city - please try again."
+                    self.resultLabel.text = "Couldn't find the weather for the city or check your selling - please try again."
                 }
-                
-            
-        }
+        }) 
         
         task.resume()
       
@@ -73,19 +72,17 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        
-        
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         self.view.endEditing(true)
     }
     
-    func textFieldShouldReturn(textField: UITextField!) -> Bool {
+    func textFieldShouldReturn(_ textField: UITextField!) -> Bool {
         
         cityTextsField.resignFirstResponder()
         return true
